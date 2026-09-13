@@ -14,7 +14,9 @@
 :root {
   --pink:#ffd9e4; --pink-l:#fff0f5; --mint:#b7e4c7; --mint-l:#e6f7ee;
   --cream:#fff8e7; --ink:#333; --line:#333;
-  --grid:#5b9bd5; --grid2:#9dc3e6;   /* Excel版と同色。白黒印刷でも残る濃さ */
+  /* 印刷は常に白黒。青にすると薄いグレーに化けるので、最初からグレーで組む。
+     マス境界=濃いめ／中心の補助線=薄め（書いた字が読めなくならない濃さ） */
+  --grid:#777777; --grid2:#b0b0b0;
   --font-body:"UDK","UD Digi Kyokasho NK-R","Yu Gothic UI",sans-serif;
   --font-head:"ZenMaru","Zen Maru Gothic","Yu Gothic UI",sans-serif;
 }
@@ -110,17 +112,19 @@ button.act.warn { background:#eee; }
 .bcell { display:flex; border-left:1pt solid var(--line); min-width:0; overflow:hidden; }
 .bcell:first-child { border-left:none; }
 /* 練習方眼＝Excel版と同じ 横4マス×縦6マス。
-   px計算をJSでやると印刷時のレイアウトとズレて線が欠けるので、%指定で固定する。 */
+   ★背景(background-image)で描くと、印刷ダイアログの「背景のグラフィック」が既定オフのため
+     紙に出ない。必ず border（実体の罫線）で描くこと。 */
 .practice { flex:4; position:relative; }
-.practice .sq { position:absolute; inset:0;
-  background-image:
-    linear-gradient(to right, var(--grid) 0 .6pt, transparent .6pt),                                   /* マスの縦線 */
-    linear-gradient(to bottom, var(--grid) 0 .6pt, transparent .6pt),                                  /* マスの横線 */
-    linear-gradient(to right, transparent 50%, var(--grid2) 50%, var(--grid2) calc(50% + .5pt), transparent calc(50% + .5pt)),   /* 中心の縦 */
-    linear-gradient(to bottom, transparent 50%, var(--grid2) 50%, var(--grid2) calc(50% + .5pt), transparent calc(50% + .5pt));  /* 中心の横 */
-  background-size: 25% 100%, 100% 16.6667%, 25% 100%, 100% 16.6667%;
-  background-repeat: repeat;
-}
+.practice .sq { position:absolute; inset:0; display:grid;
+  grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(6,1fr); }
+.practice i { position:relative;
+  border-right:.6pt solid var(--grid); border-bottom:.6pt solid var(--grid); }
+.practice i:nth-child(4n) { border-right:none; }          /* 右端は黒の外枠にまかせる */
+.practice i:nth-last-child(-n+4) { border-bottom:none; }  /* 下端も同じ */
+.practice i::before { content:""; position:absolute; left:50%; top:0; height:100%;
+  border-left:.4pt dashed var(--grid2); }                  /* マスの中心・縦 */
+.practice i::after { content:""; position:absolute; top:50%; left:0; width:100%;
+  border-top:.4pt dashed var(--grid2); }                   /* マスの中心・横 */
 /* padding は内側のdivへ。flexアイテムに直接つけると flex-basis:0% に加算されて
    そのセルだけ太り、上のテスト欄と境界がズレる */
 .rules { flex:1; font-size:7.2pt; line-height:1.5; }
@@ -313,7 +317,7 @@ function drawSheet() {
   }).join("");
   // 下段: ⑩⑨⑧⑦=練習方眼 / ⑥=ルール / ⑤=練習ゾーン+斜線 / ④③②=分せき記入 / ①=分せきゾーン+斜線
   document.getElementById("botrow").innerHTML =
-      `<div class="bcell practice"><div class="sq"></div></div>`
+      `<div class="bcell practice"><div class="sq">${"<i></i>".repeat(24)}</div></div>`
     + `<div class="bcell rules"><div>●まちがいが２つ以上…字の練習<br>●まちがいが１つ…言葉の練習<br>●ぜんぶ丸…自分の練習を考える</div></div>`
     + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2">練習ゾーン</div><div class="slash" style="flex:1"></div></div>`
     + `<div class="bcell blank" style="flex:3"></div>`
