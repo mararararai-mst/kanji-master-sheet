@@ -114,13 +114,15 @@ button.act.warn { background:#eee; }
 /* 練習方眼＝Excel版と同じ 横4マス×縦6マス。
    ★背景(background-image)で描くと、印刷ダイアログの「背景のグラフィック」が既定オフのため
      紙に出ない。必ず border（実体の罫線）で描くこと。 */
+/* ★漢字を書くマスなので必ず正方形にする（aspect-ratio:1 で保証）。
+   高さを4等分した大きさ＝約14.8mm角を6列×4行。横に余った分は左に寄せる。 */
 .practice { flex:4; position:relative; }
-.practice .sq { position:absolute; inset:0; display:grid;
-  grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(6,1fr); }
-.practice i { position:relative;
+.practice .sq { position:absolute; inset:0;
+  display:flex; flex-wrap:wrap; align-content:flex-start; }
+/* 高さを4等分 → aspect-ratio:1 で幅も同じになる＝必ず正方形。
+   横は入るだけ並んで折り返す（93mm÷14.8mm＝6.2なので6列）。 */
+.practice i { position:relative; height:25%; aspect-ratio:1;
   border-right:.6pt solid var(--grid); border-bottom:.6pt solid var(--grid); }
-.practice i:nth-child(4n) { border-right:none; }          /* 右端は黒の外枠にまかせる */
-.practice i:nth-last-child(-n+4) { border-bottom:none; }  /* 下端も同じ */
 .practice i::before { content:""; position:absolute; left:50%; top:0; height:100%;
   border-left:.4pt dashed var(--grid2); }                  /* マスの中心・縦 */
 .practice i::after { content:""; position:absolute; top:50%; left:0; width:100%;
