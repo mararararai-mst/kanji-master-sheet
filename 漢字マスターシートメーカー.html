@@ -113,7 +113,7 @@ button.act.warn { background:#eee; }
 .acol { position:absolute; top:0; height:100%; width:16.63mm;
   display:flex; flex-direction:column; align-items:center; padding-top:2mm; }
 .acol .an { font-family:var(--font-head); font-size:10pt; color:#333; line-height:1; margin-bottom:1.5mm; }
-.acol .aa { writing-mode:vertical-rl; font-family:var(--font-body); color:#555; line-height:1; letter-spacing:.06em; }
+.acol .aa { writing-mode:vertical-rl; font-family:var(--font-body); color:#555; line-height:1.15; letter-spacing:.06em; white-space:nowrap; }
 .backhint { text-align:center; font-size:12px; color:#999; margin:6px 0 0; }
 
 .item { flex:1; display:flex; border-left:1pt solid var(--line); }
@@ -376,6 +376,29 @@ function drawSheet() {
 function withBack() { const c = document.getElementById("withBack"); return !c || c.checked; }
 
 // うら：折り上げた帯のうらに、①〜⑩の答えを各問題の「書く欄」の真下に来る位置で刷る
+// 4字以上の答えは2行に折る（助詞のあと＞かな→漢字の境目＞…。送りがなの手前や小さい字の前では折らない）
+function splitAns(a) {
+  if (a.length <= 3) return [a];
+  const isK = c => /[一-鿿々]/.test(c);
+  let best = null, bestScore = 1e9;
+  for (let k = 1; k <= a.length - 1; k++) {
+    const x = a[k - 1], y = a[k];
+    let pen = 15;                                                   // かな→かな＝言葉の途中
+    if ("をがのでにはとへも".includes(x) && !/^(のぼ|が[りるっれろら])/.test(x + y)) pen = -3;  // 助詞のあと（山のぼり・曲がり角は助詞でない）
+    else if ("いな".includes(x)) pen = 1;                           // 甘い/お菓子・静かな/へや
+    else if ("てく".includes(x) && !isK(y)) pen = 3;                // 調べて/みる・仲よく/する
+    else if (!isK(x) && isK(y)) pen = 2;                            // みじかい/文
+    else if (isK(x) && isK(y)) pen = 10;                            // 熟語の途中
+    else if (isK(x) && !isK(y)) pen = 9;                            // 送りがなの手前
+    if ("ゃゅょっぁぃぅぇぉーんを".includes(y)) pen = 100;          // 小さい字・ん・をで行を始めない
+    const score = Math.max(k, a.length - k) * 5 + pen + (k === 1 || k === a.length - 1 ? 6 : 0);  // 1字だけの行は避ける
+    if (score < bestScore) { bestScore = score; best = k; }
+  }
+  if (bestScore >= 30 && a.length <= 6) return [a];
+  if (a.length === 4 && bestScore > 12) return [a];                // 4字は助詞で折れるとき（水を/のむ）だけ               // よい折り目がない短い語（勧められる）は1行のまま
+  return [a.slice(0, best), a.slice(best)];
+}
+
 function drawBack() {
   const wrap = document.getElementById("backwrap");
   const on = withBack();
@@ -391,9 +414,11 @@ function drawBack() {
     const i = 10 - n;                                   // 左から何番目の問題か（⑩が左端）
     const left = 18.799 + i * 24.940;      // 書く欄の左端（うらの紙面＝表と同じ左右）
     const ans = p ? p[2] : "";
-    const size = ans ? Math.min(7, 24.32 / ans.length) : 7;
+    const lines = splitAns(ans);
+    const longest = Math.max(...lines.map(l => l.length));
+    const size = Math.min(7, 24.32 / (longest * 1.06), 16.63 / (lines.length * 1.2));
     h += `<div class="acol" style="left:${left.toFixed(2)}mm"><div class="an">${NUM[n - 1]}</div>`
-       + `<div class="aa" style="font-size:${size.toFixed(2)}mm">${ans}</div></div>`;
+       + `<div class="aa" style="font-size:${size.toFixed(2)}mm">${lines.join("<br>")}</div></div>`;
   }
   strip.innerHTML = h;
   fitSheet();
