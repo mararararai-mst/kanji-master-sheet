@@ -129,8 +129,10 @@ button.act.warn { background:#eee; }
   border-top:.4pt dashed var(--grid2); }                   /* マスの中心・横 */
 /* padding は内側のdivへ。flexアイテムに直接つけると flex-basis:0% に加算されて
    そのセルだけ太り、上のテスト欄と境界がズレる */
-.rules { flex:1; font-size:7.2pt; line-height:1.5; }
-.rules > div { padding:4pt 3pt; }
+/* 直し方のルール。分せき記入欄の上端に1行で置く（1問ぶんの枠を使わない）。
+   折り返すと読みにくいので、入る長さまで文を短くしてある。 */
+.rules { font-size:6.4pt; line-height:1.3; padding:3pt 4pt; color:#333;
+  white-space:nowrap; }
 .zonelabel { writing-mode:vertical-rl; text-orientation:upright;
   display:flex; align-items:center; justify-content:center;
   font-family:var(--font-head); font-size:9.5pt; font-weight:bold; letter-spacing:.12em; }
@@ -138,7 +140,7 @@ button.act.warn { background:#eee; }
 /* 線はグラデーションの軸に「垂直」に出る。元画像と同じ「＼」にするには軸を to top right にする */
 .slash::after { content:""; position:absolute; inset:0;
   background:linear-gradient(to top right, transparent calc(50% - .7pt), var(--line) calc(50% - .7pt), var(--line) calc(50% + .7pt), transparent calc(50% + .7pt)); }
-.blank { flex:1; }
+.blank { flex:1; align-items:flex-start; }   /* 中のルール文を上端に置く */
 
 /* ===== 印刷 ===== */
 @page { size:A4 landscape; margin:5mm; }
@@ -319,10 +321,9 @@ function drawSheet() {
   }).join("");
   // 下段: ⑩⑨⑧⑦=練習方眼 / ⑥=ルール / ⑤=練習ゾーン+斜線 / ④③②=分せき記入 / ①=分せきゾーン+斜線
   document.getElementById("botrow").innerHTML =
-      `<div class="bcell practice"><div class="sq">${"<i></i>".repeat(25)}</div></div>`
-    + `<div class="bcell rules"><div>●まちがいが２つ以上…字の練習<br>●まちがいが１つ…言葉の練習<br>●ぜんぶ丸…自分の練習を考える</div></div>`
+      `<div class="bcell practice" style="flex:5"><div class="sq">${"<i></i>".repeat(35)}</div></div>`
     + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2">練習ゾーン</div><div class="slash" style="flex:1"></div></div>`
-    + `<div class="bcell blank" style="flex:3"></div>`
+    + `<div class="bcell blank" style="flex:3"><div class="rules">●2つ以上→字の練習　●1つ→言葉の練習　●全部丸→自分で考える</div></div>`
     + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2">分せきゾーン</div><div class="slash" style="flex:1"></div></div>`;
 }
 
