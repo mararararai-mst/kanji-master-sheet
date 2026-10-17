@@ -140,8 +140,9 @@ button.act.warn { background:#eee; }
 .zonelabel { writing-mode:vertical-rl; text-orientation:upright;
   display:flex; align-items:center; justify-content:center;
   font-family:var(--font-head); font-size:9.5pt; font-weight:bold; letter-spacing:.12em; }
-/* 斜線「＼」はSVGの線で描く。★背景(グラデーション)で描くと、印刷ダイアログの
-   「背景のグラフィック」が既定オフのため紙に出ない（方眼と同じ落とし穴）。 */
+/* 練習ゾーン・分せきゾーンの右の細い列＝書かない場所。黒の細い斜線ハッチをSVGで描く。
+   ★背景(グラデーション・background-color)で描くと「背景のグラフィック」オフで紙に出ない。
+   ★グレー塗りは校務の白黒プリンタで黒く潰れる/白く飛ぶので使わない。 */
 .slash { position:relative; }
 .slash svg { position:absolute; inset:0; width:100%; height:100%; }
 .blank { flex:1; }
@@ -324,15 +325,16 @@ function drawSheet() {
     return `<div class="item"><div class="write"></div><div class="read">${p ? p[1] : ""}</div></div>`;
   }).join("");
   // 下段: ⑩〜⑥=練習方眼＋説明(縦書き) / ⑤=練習ゾーン+斜線 / ④③②=分せき記入 / ①=分せきゾーン+斜線
-  const SLASH = '<svg viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="0" y1="0" x2="100" y2="100" stroke="#333" stroke-width="1.4" vector-effect="non-scaling-stroke"/></svg>';
+  // 書かない列は黒の細い斜線ハッチ（塗りは白黒プリンタで黒く潰れる／白く飛ぶので使わない）。SVGなので背景オフでも印刷される
+  const HATCH = id => `<svg><defs><pattern id="${id}" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="9" stroke="#333" stroke-width="0.8"/></pattern></defs><rect width="100%" height="100%" fill="url(#${id})"/></svg>`;
   document.getElementById("botrow").innerHTML =
       `<div class="bcell" style="flex:5">`
     +   `<div class="practice"><div class="sq">${"<i></i>".repeat(30)}</div></div>`
     +   `<div class="rules"><div>●まちがいが二つ以上︙字の練習</div><div>●まちがいが一つ︙言葉の練習</div><div>●ぜんぶ丸︙自分の練習を考える</div></div>`
     + `</div>`
-    + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2">練習ゾーン</div><div class="slash" style="flex:1">${SLASH}</div></div>`
+    + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2">練習ゾーン</div><div class="slash" style="flex:1">${HATCH("hatch1")}</div></div>`
     + `<div class="bcell blank" style="flex:3"></div>`
-    + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2">分せきゾーン</div><div class="slash" style="flex:1">${SLASH}</div></div>`;
+    + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2">分せきゾーン</div><div class="slash" style="flex:1">${HATCH("hatch2")}</div></div>`;
 }
 
 // 方眼はCSSの%指定で横4×縦6に固定しているので、JSでのサイズ計算は不要
