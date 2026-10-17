@@ -93,7 +93,7 @@ button.act.warn { background:#eee; }
 .testzone { display:flex; flex-direction:column; flex:1; }
 .numrow { height:5.530474040632055%; display:flex;
   border-bottom:1pt solid var(--line); }
-.testrow { height:52.144469525959366%; display:flex;
+.testrow { height:45.93679458239278%; display:flex;
   border-bottom:1.6pt solid var(--line); }
 .botrow { flex:1; display:flex; }
 
@@ -121,7 +121,7 @@ button.act.warn { background:#eee; }
   display:flex; flex-wrap:wrap; align-content:flex-start; }
 /* 高さを4等分 → aspect-ratio:1 で幅も同じになる＝必ず正方形。
    横は入るだけ並んで折り返す（93mm÷14.8mm＝6.2なので6列）。 */
-.practice i { position:relative; height:25%; aspect-ratio:1;
+.practice i { position:relative; height:20.0000%; aspect-ratio:1;
   border-right:.6pt solid var(--grid); border-bottom:.6pt solid var(--grid); }
 .practice i::before { content:""; position:absolute; left:50%; top:0; height:100%;
   border-left:.4pt dashed var(--grid2); }                  /* マスの中心・縦 */
@@ -319,7 +319,7 @@ function drawSheet() {
   }).join("");
   // 下段: ⑩⑨⑧⑦=練習方眼 / ⑥=ルール / ⑤=練習ゾーン+斜線 / ④③②=分せき記入 / ①=分せきゾーン+斜線
   document.getElementById("botrow").innerHTML =
-      `<div class="bcell practice"><div class="sq">${"<i></i>".repeat(24)}</div></div>`
+      `<div class="bcell practice"><div class="sq">${"<i></i>".repeat(25)}</div></div>`
     + `<div class="bcell rules"><div>●まちがいが２つ以上…字の練習<br>●まちがいが１つ…言葉の練習<br>●ぜんぶ丸…自分の練習を考える</div></div>`
     + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2">練習ゾーン</div><div class="slash" style="flex:1"></div></div>`
     + `<div class="bcell blank" style="flex:3"></div>`
