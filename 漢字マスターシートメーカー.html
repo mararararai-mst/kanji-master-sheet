@@ -92,6 +92,14 @@ button.act.warn { background:#eee; }
 .zonehead { display:flex; align-items:center; justify-content:center;
   font-family:var(--font-head); font-size:11pt; font-weight:bold; }
 
+/* けテぶれの頭文字。けいかく→テスト→ぶんせき→れんしゅう の順に、見出しの頭に丸で囲んで置く（白黒でも出るよう枠線） */
+.ini { display:inline-flex; align-items:center; justify-content:center; flex:none;
+  font-size:1.45em; width:1.4em; height:1.4em; border:1.2pt solid #000; border-radius:50%;
+  font-family:var(--font-head); font-weight:bold; line-height:1; letter-spacing:0;
+  text-orientation:upright; margin-inline-end:.25em; }
+.center.zonehead { flex-direction:row; }   /* .center は縦並びなので、見出しだけ横並びに戻す */
+.side.r { letter-spacing:0; }             /* けいかく の欄は細いので、丸を少し小さくして字間を詰める */
+.side.r .ini { font-size:1.1em; margin-inline-end:.15em; }
 .testzone { display:flex; flex-direction:column; flex:1; }
 .numrow { height:5.530474040632055%; display:flex;
   border-bottom:1pt solid var(--line); }
@@ -233,8 +241,8 @@ button.act.warn { background:#eee; }
     </div>
     <div class="r-head">
       <div class="side l">ふりかえり</div>
-      <div class="center zonehead">テストゾーン</div>
-      <div class="side r">けいかく</div>
+      <div class="center zonehead"><span class="ini">テ</span>テストゾーン</div>
+      <div class="side r"><span class="ini">け</span>けいかく</div>
     </div>
     <div class="r-body">
       <div class="side l"></div>
@@ -381,9 +389,9 @@ function drawSheet() {
     +   `<div class="practice"><div class="sq">${"<i></i>".repeat(30)}</div></div>`
     +   `<div class="rules"><div>●まちがいが二つ以上︙字の練習</div><div>●まちがいが一つ︙言葉の練習</div><div>●ぜんぶ丸︙自分の練習を考える</div></div>`
     + `</div>`
-    + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2">練習ゾーン</div><div class="slash" style="flex:1">${HATCH("hatch1")}</div></div>`
+    + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2"><span class="ini">れ</span>練習ゾーン</div><div class="slash" style="flex:1">${HATCH("hatch1")}</div></div>`
     + `<div class="bcell blank" style="flex:3"></div>`
-    + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2">分せきゾーン</div><div class="slash" style="flex:1">${HATCH("hatch2")}</div></div>`
+    + `<div class="bcell" style="flex:1"><div class="zonelabel" style="flex:2"><span class="ini">ぶ</span>分せきゾーン</div><div class="slash" style="flex:1">${HATCH("hatch2")}</div></div>`
     + (withBack() ? `<div class="foldtx">ここでおる▶</div>` : "");
   drawBack();
 }
