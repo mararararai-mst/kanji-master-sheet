@@ -199,11 +199,18 @@ button.act.warn { background:#eee; }
     <h2>えらんだ漢字<span class="count" id="count">0 / 10</span></h2>
     <div class="picked" id="picked"></div>
     <div class="btns" style="margin-top:12px">
-      <button class="act" onclick="omakase()">おまかせ10字</button>
-      <button class="act" onclick="mishutsudai()">まだ出してない字から10字</button>
+      <label style="font-size:13px;margin-right:4px">問題数
+        <select id="qmax" onchange="setQmax()">
+          <option value="10" selected>10問</option>
+          <option value="5">5問</option>
+        </select>
+      </label>
+      <button class="act" onclick="omakase()" id="btnOmakase">おまかせ10字</button>
+      <button class="act" onclick="mishutsudai()" id="btnMishutsu">まだ出してない字から10字</button>
       <button class="act warn" onclick="clearAll()">クリア</button>
       <button class="act warn" onclick="resetHistory()">出題りれきを消す</button>
       <button class="act primary" onclick="window.print()">印刷する</button>
+      <button class="act" onclick="printBlank()">白紙で印刷する</button>
     </div>
     <div class="btns" style="margin-top:10px;align-items:center;font-size:13px">
       <label><input type="checkbox" id="withBack" checked onchange="render()"> うらに答えを刷る（両面印刷・折って自分で丸つけ）</label>
@@ -255,7 +262,8 @@ const NUM = "①②③④⑤⑥⑦⑧⑨⑩";
 const HKEY = "kanjiMasterSheet.history";
 
 let grade = "2年";
-let picked = [];                 // [[漢字, よみ, 答え], ...] 最大10
+let picked = [];                 // [[漢字, よみ, 答え], ...] 最大 qmax
+let qmax = 10;                   // 問題数（10問 か 5問。5問のときは①〜⑤だけ使い、⑥〜⑩の欄は空ける）
 
 function history() {
   try { return JSON.parse(localStorage.getItem(HKEY) || "{}"); } catch (e) { return {}; }
@@ -300,7 +308,7 @@ function toggle(k) {
   const i = picked.findIndex(p => p[0] === k);
   if (i >= 0) picked.splice(i, 1);
   else {
-    if (picked.length >= 10) { alert("もう10字そろっています。\n入れかえるときは、えらんだ漢字をもう一度クリックして取り消してください。"); return; }
+    if (picked.length >= qmax) { alert("もう" + qmax + "字そろっています。\n入れかえるときは、えらんだ漢字をもう一度クリックして取り消してください。"); return; }
     const p = findPair(k); if (p) picked.push(p);
   }
   render();
@@ -314,16 +322,23 @@ function mishutsudai() {
   const used = usedSet();
   const pool = BANK[grade].filter(p => !used.has(p[0]));
   if (pool.length === 0) { alert(grade + "の漢字は、ぜんぶ出題ずみです。\n「出題りれきを消す」でやり直せます。"); return; }
-  if (pool.length < 10) alert("まだ出していない字は、のこり " + pool.length + " 字です。その分だけ入れます。");
+  if (pool.length < qmax) alert("まだ出していない字は、のこり " + pool.length + " 字です。その分だけ入れます。");
   pick(pool);
 }
 function pick(pool) {
   picked = [];
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-  picked = pool.slice(0, 10);
+  picked = pool.slice(0, qmax);
   render();
 }
 function clearAll() { picked = []; render(); }
+function setQmax() {
+  qmax = +document.getElementById("qmax").value;
+  if (picked.length > qmax) picked = picked.slice(0, qmax);
+  document.getElementById("btnOmakase").textContent = "おまかせ" + qmax + "字";
+  document.getElementById("btnMishutsu").textContent = "まだ出してない字から" + qmax + "字";
+  render();
+}
 function resetHistory() {
   if (!confirm(grade + "の出題りれきを消しますか？")) return;
   const h = history(); delete h[grade]; saveHistory(h); drawGrid();
@@ -341,7 +356,7 @@ window.addEventListener("beforeprint", recordHistory);
 window.addEventListener("afterprint", drawGrid);
 
 function render() {
-  document.getElementById("count").textContent = picked.length + " / 10";
+  document.getElementById("count").textContent = picked.length + " / " + qmax;
   document.getElementById("picked").innerHTML = picked.length === 0
     ? '<span style="color:#bbb;font-size:13px">まだえらばれていません</span>'
     : picked.map((p, i) => `<span class="chip">${NUM[i]}<b>${p[0]}</b>${p[1]}<span class="x" onclick="toggle('${p[0]}')">×</span></span>`).join("");
@@ -353,7 +368,7 @@ function drawSheet() {
   // ①が右・⑩が左（縦書きの読み順）
   const order = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
   document.getElementById("numrow").innerHTML =
-    order.map(n => `<div class="item">${NUM[n - 1]}</div>`).join("");
+    order.map(n => `<div class="item">${n <= qmax ? NUM[n - 1] : ""}</div>`).join("");
   document.getElementById("testrow").innerHTML = order.map(n => {
     const p = picked[n - 1];
     return `<div class="item"><div class="write"></div><div class="read">${p ? p[1] : ""}</div></div>`;
@@ -373,7 +388,16 @@ function drawSheet() {
   drawBack();
 }
 
-function withBack() { const c = document.getElementById("withBack"); return !c || c.checked; }
+// 漢字が1つもないとき（白紙）は、うらも折り目の印も刷らない
+function withBack() { const c = document.getElementById("withBack"); return picked.length > 0 && (!c || c.checked); }
+
+// えらんだ漢字はそのままにして、白紙（おもて1枚）だけ印刷する
+function printBlank() {
+  const keep = picked;
+  picked = []; render();
+  window.print();
+  picked = keep; render();
+}
 
 // うら：折り上げた帯のうらに、①〜⑩の答えを各問題の「書く欄」の真下に来る位置で刷る
 // 4字以上の答えは2行に折る（助詞のあと＞かな→漢字の境目＞…。送りがなの手前や小さい字の前では折らない）
@@ -417,7 +441,7 @@ function drawBack() {
     const lines = splitAns(ans);
     const longest = Math.max(...lines.map(l => l.length));
     const size = Math.min(7, 24.32 / (longest * 1.06), 16.63 / (lines.length * 1.2));
-    h += `<div class="acol" style="left:${left.toFixed(2)}mm"><div class="an">${NUM[n - 1]}</div>`
+    h += `<div class="acol" style="left:${left.toFixed(2)}mm"><div class="an">${p ? NUM[n - 1] : ""}</div>`
        + `<div class="aa" style="font-size:${size.toFixed(2)}mm">${lines.join("<br>")}</div></div>`;
   }
   strip.innerHTML = h;
